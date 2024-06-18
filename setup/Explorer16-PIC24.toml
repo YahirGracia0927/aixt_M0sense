@@ -55,7 +55,8 @@ api_modules = [
     "pwm",
     "uart",
     "uart2",
-    "time"
+    "sw_uart",
+    "time",
 ]
 
 [aliases]

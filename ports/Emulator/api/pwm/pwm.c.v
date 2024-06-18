@@ -9,13 +9,12 @@ module pwm
 #include <stdio.h>
 #include <stdlib.h>
 
-// PWM_names is the enumerated type for the PWM names
-#define		pwm__out_0		0
-#define		pwm__out_1		1
-
 __global (
     duty__ = [0, 0]
 )
+
+#define pwm__ch0    0
+#define pwm__ch1    1
 
 pub fn C.print(duty int)
 

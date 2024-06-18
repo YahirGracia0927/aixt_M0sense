@@ -4,9 +4,3 @@
 // Description: TIME functions (WCH-CH573F)
 
 module time
-
-#include "CH57x_common.h"
-
-fn init() {
-
-}

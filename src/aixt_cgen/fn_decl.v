@@ -70,45 +70,57 @@ fn (mut gen Gen) fn_decl(node ast.FnDecl) []string {
 			.c {				// for C.functions()
 				c_file_path := os.dir(node.file) + '/${node.short_name}.c'
 				mut c_code := os.read_file(c_file_path) or { panic(err) }
-				out << c_code.replace('${node.short_name}(', '${module_short_name}__${node.short_name}(')
+				c_code = c_code.replace('${node.short_name}(', '${module_short_name}__${node.short_name}(')
+				if !c_code.contains('#define') && !c_code.contains('irq__') {
+					gen.definitions << c_code.all_before('{') + ';'		// generates the function's prototype
+				}
+				out << c_code
 			}
 			else {				//for regular functions
 				gen.cur_fn = node.name
 				mut nxc_task := false
+				mut irq := false
 				for a in node.attrs {
 					c_line += '${a.name} '
-					if a.name == 'task' { 
+					if a.name.contains('irq_') {
+						irq = true
+					} else if a.name == 'task' { 
 						nxc_task = true
 					}
 				}
-				// println('##########${gen.table.type_symbols[node.return_type].str()}##########')
-				c_line += if nxc_task {	// return type
-					'' 
-				} else {
-					gen.setup.value(gen.table.type_symbols[node.return_type].str()).string() + ' '
-				}
-				// out += '${node.name.replace('.', '__')}('
-				c_line += if nxc_task {
-					'${node.short_name}('
-				} else {
-					'${module_short_name}__${node.short_name}('
-				}
-				if node.params.len != 0 {
-					for pr in node.params {
-						c_line += '${gen.ast_node(pr).join('')}, '
+				if irq {
+					gen.definitions << '#define ${c_line#[..-1]}_isr_exists'
+					c_line = '${c_line#[..-1]}(${node.short_name})'
+					gen.definitions << '${c_line} {'
+					for st in node.stmts {
+						gen.definitions << gen.ast_node(st)  	
 					}
-					c_line = c_line#[..-2] + ')' 
-					// gen.definitions << out + ';\n'	// generates the function's prototype
-					out << '${c_line} {'
+					gen.definitions << '}'
 				} else {
-					c_line += ')' 
-					// gen.definitions << out + ';\n'	// generates the function's prototype
+					// println('##########${gen.table.type_symbols[node.return_type].str()}##########')
+					if nxc_task {
+						c_line += '${node.short_name}('
+					} else {
+						c_line += gen.setup.value(gen.table.type_symbols[node.return_type].str()).string() + ' '
+						c_line += '${module_short_name}__${node.short_name}('
+					}
+					// out += '${node.name.replace('.', '__')}('
+					if node.params.len != 0 {
+						for pr in node.params {
+							c_line += '${gen.ast_node(pr).join('')}, '
+						}
+						c_line = c_line#[..-2] + ')' 
+						gen.definitions << c_line + ';\n'	// generates the function's prototype
+					} else {
+						c_line += ')' 
+						gen.definitions << c_line + ';\n'	// generates the function's prototype
+					}
 					out << '${c_line} {'
+					for st in node.stmts {
+						out << gen.ast_node(st)  	
+					}
+					out << '}'
 				}
-				for st in node.stmts {
-					out << gen.ast_node(st)  	
-				}
-				out << '}'
 			}
 		}
 		// out = if out[0] == ` ` { out[1..] } else { out }

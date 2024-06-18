@@ -1,5 +1,5 @@
 // Project Name: Aixt, https://github.com/fermarsan/aixt.git
-// Author: Fernando Martínez Santa & Santiago Orjuela R.
+// Author: Fernando Martínez Santa
 // Date: 2022-2024
 // License: MIT
 //
@@ -13,4 +13,4 @@ module adc
 //         (FCY / 16) 
 // ADCS = ──────────── - 1
 //           FAD 
-#define adc__setup(PINS, FAD)  AD1PCFG = PINS;  AD1CON3bits.ADCS = (uint8_t)(((FCY>>8) / (int)(FAD)>>4) - 1) 
+#define adc__setup(PINS, FAD)  AD1PCFG &= PINS;  AD1CON3bits.ADCS = (uint8_t)(((FCY>>8) / (int)(FAD)>>4) - 1) 

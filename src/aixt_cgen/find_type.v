@@ -15,12 +15,14 @@ fn (mut gen Gen) find_type(node ast.Expr) ast.Kind {
 		ast.Ident {
 			// ident_name := '${(node as ast.Ident).mod}.${(node as ast.Ident).name}'
 			ident_name := (node as ast.Ident).name
-			obj := gen.find_object(ident_name) or {
+			obj := gen.find_obj_all_scopes(ident_name) or {
 				panic('Identifier "${ident_name}" not found.') 
 			}
+			// println('=============== ${obj} ===============')
 			expr_type = obj.typ
 		}
 		else {
+			// println('=============== not ast.Ident ===============')
 			return .void
 		}
 	}
