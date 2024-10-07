@@ -5,12 +5,11 @@
 //
 // Description: Pin management functions (M0sense port)
 
-module pin
+module port
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+// read function reads an 8 bit value from a port
+@[inline]
+pub fn read(name int) int {
+	addr = &(C.gpio_set_mode) + name
+	return unsafe { *addr }	
+}

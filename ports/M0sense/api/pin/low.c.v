@@ -7,10 +7,8 @@
 
 module pin
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+// pin_high puts a low value (logic 0) to a specific pin
+@[inline]
+pub fn low(name int) {   
+    C. gpio_write(name, 0)
+}

@@ -5,12 +5,6 @@
 //
 // Description: Pin management functions (M0sense port)
 
-module pin
+module pwm
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+#include "hal_pwm.h"

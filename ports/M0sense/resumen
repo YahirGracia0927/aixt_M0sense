@@ -1,0 +1,109 @@
+//PWM
+
+#include "bflb_platform.h"
+#include "hal_pwm.h"
+#include "hal_gpio.h"
+#include "hal_clock.h"
+
+#include "io_def.h"
+
+int main(void)
+{
+    // Configuración inicial del ciclo de trabajo del PWM
+    pwm_dutycycle_config_t pwm_cfg = {
+        0, // duty cycle bajo
+        0  // duty cycle alto
+    };
+
+    // Inicialización de la plataforma
+    bflb_platform_init(0);
+
+    // Configuración de los pines GPIO como salidas
+    gpio_set_mode(GPIO_PIN_25, GPIO_OUTPUT_PP_MODE);
+    gpio_set_mode(GPIO_PIN_26, GPIO_OUTPUT_PP_MODE);
+    gpio_set_mode(GPIO_PIN_27, GPIO_OUTPUT_PP_MODE);
+
+    // Establecer el estado inicial de los pines GPIO en bajo
+    gpio_write(GPIO_PIN_25, 0);
+    gpio_write(GPIO_PIN_26, 0);
+    gpio_write(GPIO_PIN_27, 0);
+
+    // Registrar un canal PWM con el nombre "led_breath"
+    pwm_register(PWM_CH2_INDEX, "led_breath");
+
+    // Encontrar el dispositivo PWM registrado con el nombre "led_breath"
+    struct device *led_breath = device_find("led_breath");
+
+    // Configurar el dispositivo PWM si se encontró
+    if (led_breath) {
+        // Configurar el periodo del PWM (frecuencia)
+        PWM_DEV(led_breath)->period = 10; // frecuencia = 32K/(31+1)/10 = 100HZ
+        // Configurar el umbral bajo del PWM
+        PWM_DEV(led_breath)->threshold_low = 5;
+        // Configurar el umbral alto del PWM
+        PWM_DEV(led_breath)->threshold_high = 10;
+        // Abrir el dispositivo PWM para transmisión en streaming
+        device_open(led_breath, DEVICE_OFLAG_STREAM_TX);
+        // Iniciar el canal PWM
+        pwm_channel_start(led_breath);
+    }
+
+    // Bucle principal
+    while (1) {
+        // Aumentar gradualmente el ciclo de trabajo del PWM
+        for (pwm_cfg.threshold_high = 0; pwm_cfg.threshold_high <= 32; pwm_cfg.threshold_high++) {
+            // Configurar el ciclo de trabajo del PWM
+            device_control(led_breath, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg);
+            // Retardo para la transición suave
+            bflb_platform_delay_ms(50);
+        }
+
+        // Disminuir gradualmente el ciclo de trabajo del PWM
+        for (pwm_cfg.threshold_high = 32; pwm_cfg.threshold_high >= 0; pwm_cfg.threshold_high--) {
+            // Configurar el ciclo de trabajo del PWM
+            device_control(led_breath, DEVICE_CTRL_PWM_DUTYCYCLE_CONFIG, &pwm_cfg);
+            // Retardo para la transición suave
+            bflb_platform_delay_ms(50);
+        }
+    }
+}
+
+//UART
+
+#include "bflb_platform.h"
+#include "hal_uart.h"
+
+// Define un búfer para los datos UART
+static uint8_t buffer[100];
+
+int main(void)
+{
+    // Inicializa la plataforma
+    bflb_platform_init(0);
+    // Registra UART1 con el nombre "uart1"
+    uart_register(UART1_INDEX, "uart1");
+    // Encuentra el dispositivo UART1
+    struct device *uart1 = device_find("uart1");
+
+    // Si se encuentra el dispositivo UART1
+    if (uart1) {
+        // Abre el dispositivo UART1 para transmisión y recepción en streaming
+        device_open(uart1, DEVICE_OFLAG_STREAM_TX | DEVICE_OFLAG_STREAM_RX);
+        // Imprime un mensaje de éxito
+        MSG("device find success\r\n");
+    }
+
+    // Lee datos de UART1
+    device_read(uart1, 0, buffer, 10);
+    // Escribe datos en UART1
+    device_write(uart1, 0, buffer, 10);
+
+    // Indica una ejecución exitosa
+    BL_CASE_SUCCESS;
+
+    // Bucle principal
+    while (1) {
+        // Retardo de 100 milisegundos
+        bflb_platform_delay_ms(100);
+    }
+}
