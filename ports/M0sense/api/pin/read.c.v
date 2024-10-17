@@ -7,10 +7,8 @@
 
 module pin
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+//Reads the value from a specified digital pin, either HIGH or LOW
+@[inline]
+pub fn read(name int) int {
+	return C.gpio_read(name)
+}

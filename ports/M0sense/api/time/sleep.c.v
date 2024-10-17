@@ -5,12 +5,10 @@
 //
 // Description: Pin management functions (M0sense port)
 
-module pin
+module time
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+// sleep is a delay function in seconds for the Aixt PC port. 
+@[inline]
+pub fn sleep(ts int) {
+    C.dmtimer_delay_ms(ts*1000)
+}

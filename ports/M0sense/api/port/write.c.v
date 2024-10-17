@@ -5,12 +5,11 @@
 //
 // Description: Pin management functions (M0sense port)
 
-module pin
+module port
 
-#include <bflb_platform.h>
-#include <hal_gpio.h>
-#include <usb_stdio.h>
-#include "io_def.h"
-
-const output = int(1)
-const input = int(4)
+// write function writes an 8 bit value on a port
+@[inline]
+pub fn write(name u8, value u8) {
+	addr = &(C.gpio_set_mode) + name
+	unsafe { *addr = value }	
+}
